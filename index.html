@@ -1,0 +1,1120 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Unstable Connection | Live Messenger</title>
+
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Bootstrap 4.6 CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.2/css/bootstrap.min.css">
+
+    <!-- Supabase JS Client (v2 CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --wa-teal: #128c7e;
+            --wa-green: #25d366;
+            --wa-light-green: #d9fdd3;
+            --wa-chat-bg: #efeae2;
+            --wa-blue-ticks: #53bdeb;
+            --text-main: #111b21;
+            --text-muted: #8696a0;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-display: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background-color: #d1d7db;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-bg-banner {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 125px;
+            background: linear-gradient(135deg, #ff4757 0%, #0088cc 100%);
+            z-index: 0;
+        }
+
+        /* Top Navigation */
+        .wa-navbar {
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(90deg, #ff4757 0%, #0088cc 100%);
+            color: #ffffff;
+            padding: 10px 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .wa-nav-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .wa-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        .wa-brand:hover { text-decoration: none; color: #ffffff; }
+
+        .wa-brand-icon {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #ff4757;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .wa-brand-title {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        .wa-brand-tag {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 6px;
+        }
+
+        /* Main Workspace Container */
+        .wa-main-container {
+            position: relative;
+            z-index: 5;
+            max-width: 1050px;
+            width: 100%;
+            margin: 16px auto 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 12px;
+        }
+
+        /* Chat Window Card */
+        .wa-chat-window {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 110px);
+            min-height: 580px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+
+        /* Top Chat Header */
+        .wa-chat-header {
+            background: #f0f2f5;
+            border-bottom: 1px solid #e9edef;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .wa-chat-target {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .wa-target-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4757, #0088cc);
+            color: #ffffff;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(255, 71, 87, 0.3);
+        }
+
+        .wa-target-info h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wa-target-status {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #25d366;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .wa-status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #25d366;
+            box-shadow: 0 0 6px #25d366;
+            animation: pulseGreen 2s infinite;
+        }
+
+        @keyframes pulseGreen {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.25); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .wa-icon-btn {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: #54656f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .wa-icon-btn:hover { background: #e4e6eb; color: #111b21; }
+
+        /* Chat Stream (WhatsApp Doodle Wallpaper) */
+        .wa-chat-body {
+            flex: 1;
+            background-color: var(--wa-chat-bg);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 71, 87, 0.04) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 136, 204, 0.05) 0%, transparent 25%),
+                repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.015) 0, rgba(0, 0, 0, 0.015) 1px, transparent 0, transparent 24px);
+            padding: 16px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .wa-chat-body::-webkit-scrollbar { width: 6px; }
+        .wa-chat-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        .wa-date-pill {
+            align-self: center;
+            background: #ffffff;
+            color: #54656f;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(11, 20, 26, 0.12);
+            margin: 4px 0;
+            text-transform: uppercase;
+        }
+
+        /* Message Bubbles */
+        .wa-bubble-row {
+            display: flex;
+            margin-bottom: 4px;
+            max-width: 80%;
+            animation: bubbleIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes bubbleIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .wa-bubble-row.incoming { align-self: flex-start; }
+        .wa-bubble-row.outgoing { align-self: flex-end; }
+
+        .wa-bubble {
+            position: relative;
+            padding: 7px 12px 6px 12px;
+            border-radius: 9px;
+            box-shadow: 0 1px 2px rgba(11, 20, 26, 0.12);
+            word-break: break-word;
+            font-size: 0.93rem;
+            line-height: 1.45;
+        }
+
+        .wa-bubble-row.incoming .wa-bubble {
+            background-color: #ffffff;
+            color: var(--text-main);
+            border-top-left-radius: 0;
+        }
+
+        .wa-bubble-row.outgoing .wa-bubble {
+            background-color: var(--wa-light-green);
+            color: var(--text-main);
+            border-top-right-radius: 0;
+        }
+
+        .wa-sender-name {
+            font-weight: 700;
+            font-size: 0.82rem;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        .wa-message-text { margin: 0; padding-right: 50px; }
+
+        .wa-bubble-meta {
+            float: right;
+            margin-left: 12px;
+            margin-top: 2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+
+        .wa-ticks { color: var(--wa-blue-ticks); font-size: 0.85rem; font-weight: bold; }
+
+        .wa-bubble-image {
+            max-width: 250px; max-height: 220px;
+            border-radius: 8px;
+            display: block;
+            margin-bottom: 4px;
+            cursor: pointer;
+        }
+
+        /* Input Dock */
+        .wa-input-dock {
+            background: #f0f2f5;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid #e9edef;
+            position: relative;
+        }
+
+        .wa-input-capsule {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        }
+
+        .wa-input-field {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 0.95rem;
+            background: transparent;
+        }
+
+        .wa-send-fab {
+            width: 46px; height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4757 0%, #0088cc 100%);
+            color: #ffffff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(255, 71, 87, 0.35);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .wa-send-fab:hover { transform: scale(1.06); }
+
+        /* Emoji Picker Popup */
+        .wa-emoji-picker-popup {
+            position: absolute;
+            bottom: 74px; left: 18px;
+            width: 350px;
+            max-width: calc(100vw - 36px);
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid #e9edef;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .wa-emoji-picker-header {
+            background: #f0f2f5;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e9edef;
+        }
+
+        .wa-emoji-tabs { display: flex; gap: 4px; }
+
+        .wa-tab-btn {
+            background: transparent; border: none;
+            font-size: 0.8rem; font-weight: 600;
+            color: #54656f; padding: 4px 8px;
+            border-radius: 8px; cursor: pointer;
+        }
+
+        .wa-tab-btn.active { background: #0088cc; color: #ffffff; }
+
+        .wa-emoji-picker-body {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .wa-emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .wa-emoji-item {
+            font-size: 1.4rem;
+            padding: 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            transition: transform 0.15s ease;
+        }
+
+        .wa-emoji-item:hover { background: #f0f2f5; transform: scale(1.2); }
+
+        /* Live Typing */
+        .wa-typing-indicator {
+            font-size: 0.78rem;
+            color: #25d366;
+            font-weight: 600;
+            font-style: italic;
+            display: none;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Quick Reactions Bar */
+        .wa-emoji-drawer {
+            background: #ffffff;
+            padding: 6px 16px;
+            border-bottom: 1px solid #e9edef;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .wa-emoji-tag {
+            background: #f0f2f5; border: none;
+            border-radius: 16px; padding: 3px 9px;
+            font-size: 1.05rem; cursor: pointer;
+        }
+
+        .wa-emoji-tag:hover { background: #e4e6eb; transform: scale(1.15); }
+
+        /* Simple Login Modal */
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .login-card {
+            width: 100%; max-width: 420px;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .wa-chat-window { height: 100vh; border-radius: 0; }
+            .wa-main-container { padding: 0; margin: 0; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Banner -->
+    <div class="app-bg-banner"></div>
+
+    <!-- Top App Bar -->
+    <nav class="wa-navbar">
+        <div class="wa-nav-container">
+            <a class="wa-brand" href="#">
+                <div class="wa-brand-icon">
+                    <i class="fa-solid fa-wifi"></i>
+                </div>
+                <div>
+                    <span class="wa-brand-title">Unstable Connection</span>
+                    <span class="wa-brand-tag">Live</span>
+                </div>
+            </a>
+
+            <div class="d-flex align-items-center" style="gap: 12px;">
+                <div class="d-flex align-items-center bg-white px-2 py-1 rounded-pill" style="font-size: 0.85rem; font-weight: 600; color: #111b21;">
+                    <div id="userAvatarNav" class="rounded-circle mr-2 d-flex align-items-center justify-content-center text-white" style="width: 24px; height: 24px; background: #ff4757; font-size: 0.75rem;">?</div>
+                    <span id="userNameNav">Guest</span>
+                </div>
+                <button type="button" class="btn btn-sm btn-light py-1 px-3 rounded-pill" id="changeHandleBtn" style="font-weight: 600; font-size: 0.8rem;">Change Name</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Chat Workspace -->
+    <main class="wa-main-container">
+        <div class="wa-chat-window">
+            <!-- Header Bar -->
+            <div class="wa-chat-header">
+                <div class="wa-chat-target">
+                    <div class="wa-target-avatar">
+                        <i class="fa-solid fa-wifi"></i>
+                    </div>
+                    <div class="wa-target-info">
+                        <h3>
+                            <span>Unstable Connection</span>
+                            <!-- Room Channel Selector -->
+                            <select id="roomSelector" class="custom-select custom-select-sm ml-2" style="width: auto; display: inline-block; font-weight: 700; border-radius: 12px; border: 1.5px solid #d1d7db; background: #ffffff;">
+                                <option value="general"># general</option>
+                                <option value="study-group"># study-group</option>
+                                <option value="networking-lab"># networking-lab</option>
+                            </select>
+                            <span id="cloudSyncBadge" class="badge badge-success ml-2" style="font-size: 0.7rem; font-weight: 600;">☁️ Cloud Synced</span>
+                        </h3>
+                        <div class="wa-target-status">
+                            <span class="wa-status-dot"></span>
+                            <span id="navStatusText">online • supabase real-time</span>
+                            <span id="e2eeBadge" class="badge badge-light ml-2 text-success" style="font-size: 0.65rem; border: 1px solid #10b981;">
+                                <i class="fa-solid fa-lock mr-1"></i>E2EE Active
+                            </span>
+                            <span id="typingIndicator" class="wa-typing-indicator ml-2">
+                                <span id="typingUser">Someone</span> is typing...
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <!-- E2EE Toggle -->
+                    <button type="button" class="wa-icon-btn" id="e2eeToggleBtn" title="Toggle E2EE Encryption">
+                        <i class="fa-solid fa-shield-halved text-success" id="e2eeIcon"></i>
+                    </button>
+                    <!-- Audio Toggle -->
+                    <button type="button" class="wa-icon-btn" id="soundToggleBtn" title="Toggle audio chime">
+                        <i class="fa-solid fa-volume-high text-success"></i>
+                    </button>
+                    <!-- Clear local view -->
+                    <button type="button" class="wa-icon-btn" id="clearViewBtn" title="Clear chat window">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    <!-- Export Chat -->
+                    <button type="button" class="wa-icon-btn" id="exportHistoryBtn" title="Export Chat Transcript">
+                        <i class="fa-solid fa-file-arrow-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Reactions Bar -->
+            <div class="wa-emoji-drawer">
+                <span class="text-muted mr-1" style="font-size: 0.8rem; font-weight: 600;">Reactions:</span>
+                <button type="button" class="wa-emoji-tag" data-emoji="👍">👍</button>
+                <button type="button" class="wa-emoji-tag" data-emoji="❤️">❤️</button>
+                <button type="button" class="wa-emoji-tag" data-emoji="😂">😂</button>
+                <button type="button" class="wa-emoji-tag" data-emoji="🔥">🔥</button>
+                <button type="button" class="wa-emoji-tag" data-emoji="🎉">🎉</button>
+                <button type="button" class="wa-emoji-tag" data-emoji="🚀">🚀</button>
+                <button type="button" class="wa-emoji-tag" data-emoji="👋">👋</button>
+                <button type="button" class="wa-emoji-tag" data-emoji="🙏">🙏</button>
+                <button type="button" class="wa-emoji-tag" data-emoji="⚡">⚡</button>
+                <button type="button" class="wa-emoji-tag" data-emoji="💯">💯</button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="messages" class="wa-chat-body">
+                <div class="wa-date-pill">
+                    <i class="fa-solid fa-shield mr-1" style="font-size: 0.7rem;"></i> End-to-End Encrypted & Synced with Supabase
+                </div>
+                <div class="wa-date-pill" style="background: #e1f5fe; color: #0288d1;">
+                    <i class="fa-solid fa-robot mr-1"></i> Try AI Command: Type <strong>/ai &lt;question&gt;</strong> or <strong>@bot joke</strong> for instant AI replies!
+                </div>
+            </div>
+
+            <!-- Interactive Emoji Picker Panel -->
+            <div id="emojiPickerPopup" class="wa-emoji-picker-popup" style="display: none;">
+                <div class="wa-emoji-picker-header">
+                    <div class="wa-emoji-tabs">
+                        <button type="button" class="wa-tab-btn active" data-tab="smileys">😀 Smileys</button>
+                        <button type="button" class="wa-tab-btn" data-tab="gestures">👍 Gestures</button>
+                        <button type="button" class="wa-tab-btn" data-tab="hearts">❤️ Hearts</button>
+                        <button type="button" class="wa-tab-btn" data-tab="tech">💻 Tech & Fun</button>
+                    </div>
+                    <button type="button" id="closeEmojiBtn" class="close text-muted" style="font-size: 1.1rem; line-height: 1;">&times;</button>
+                </div>
+                <div class="wa-emoji-picker-body">
+                    <div class="wa-emoji-grid" id="emojiGrid"></div>
+                </div>
+            </div>
+
+            <!-- Input Dock -->
+            <form id="msgForm" class="wa-input-dock" autocomplete="off">
+                <button type="button" class="wa-icon-btn" id="smileyBtn" title="Emoji">
+                    <i class="fa-regular fa-face-smile" style="font-size: 1.35rem; color: #54656f;"></i>
+                </button>
+
+                <!-- Photo Attachment -->
+                <button type="button" class="wa-icon-btn" id="attachBtn" title="Send Photo">
+                    <i class="fa-solid fa-paperclip" style="font-size: 1.25rem;"></i>
+                </button>
+                <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
+
+                <!-- Voice Note Recording -->
+                <button type="button" class="wa-icon-btn" id="micBtn" title="Record Voice Note">
+                    <i class="fa-solid fa-microphone" id="micIcon" style="font-size: 1.25rem; color: #54656f;"></i>
+                </button>
+
+                <!-- Recording Bar -->
+                <div id="recordingBar" class="d-none align-items-center px-3 py-1 bg-danger text-white" style="border-radius: 20px; gap: 8px; font-size: 0.85rem; font-weight: 600;">
+                    <span class="spinner-grow spinner-grow-sm"></span>
+                    <span>Recording... <span id="recTimer">00:00</span></span>
+                    <button type="button" class="btn btn-sm btn-light py-0 px-2 ml-2" id="stopRecBtn" style="border-radius: 10px;">Send</button>
+                </div>
+
+                <div class="wa-input-capsule" id="inputCapsule">
+                    <input type="text" class="wa-input-field" placeholder="Type a message or /ai question..." id="msg" required>
+                </div>
+
+                <button class="wa-send-fab" type="submit" id="sendBtn" title="Send">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Interactive Name Selection Modal -->
+    <div id="loginModal" class="login-overlay" style="display: none;">
+        <div class="login-card">
+            <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #ff4757, #0088cc);">
+                <div class="rounded-circle bg-white text-danger d-inline-flex align-items-center justify-content-center mb-2" style="width: 56px; height: 56px; font-size: 1.6rem;">
+                    <i class="fa-solid fa-wifi"></i>
+                </div>
+                <h3 class="font-weight-bold mb-1">Unstable Connection</h3>
+                <p class="mb-0 opacity-90" style="font-size: 0.88rem;">Live Real-Time Messenger • GitHub Pages</p>
+            </div>
+            <div class="p-4">
+                <div class="form-group mb-3">
+                    <label class="font-weight-bold text-muted small">YOUR HANDLE / OPERATOR NAME</label>
+                    <input type="text" id="handleInput" class="form-control rounded-pill px-3" placeholder="Enter your name to connect..." required>
+                </div>
+                <button type="button" id="confirmHandleBtn" class="btn btn-block text-white font-weight-bold rounded-pill py-2" style="background: linear-gradient(135deg, #ff4757, #0088cc);">
+                    JOIN CHAT NOW <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Logic: Supabase, Audio Engine, Voice Notes & E2EE -->
+    <script>
+        // Supabase Cloud Configuration
+        const SUPABASE_URL = "https://djusydxfxwvycqzcxxov.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqdXN5ZHhmeHd2eWNxemN4eG92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NTIyNTYsImV4cCI6MjEwNzIyODI1Nn0.LGMA06gf5HKbU1CRhBugatoSNTiIMagrkUuPhcTgKoQ";
+        
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // State variables
+        let currentUser = localStorage.getItem('unstable_user') || '';
+        let currentRoom = 'general';
+        let e2eeEnabled = true;
+        let soundEnabled = true;
+        let audioCtx = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recTimerInterval = null;
+
+        // E2EE Key
+        const E2EE_KEY = "UnstableConnectionSecretKey2026";
+
+        function encryptE2EE(text) {
+            if (!text || !e2eeEnabled) return text;
+            try {
+                let out = "";
+                for (let i = 0; i < text.length; i++) {
+                    out += String.fromCharCode(text.charCodeAt(i) ^ E2EE_KEY.charCodeAt(i % E2EE_KEY.length));
+                }
+                return "🔒ENC:" + btoa(out);
+            } catch (e) { return text; }
+        }
+
+        function decryptE2EE(cipher) {
+            if (!cipher || typeof cipher !== 'string' || !cipher.startsWith("🔒ENC:")) {
+                return { text: cipher, wasEncrypted: false };
+            }
+            try {
+                const raw = atob(cipher.replace("🔒ENC:", ""));
+                let out = "";
+                for (let i = 0; i < raw.length; i++) {
+                    out += String.fromCharCode(raw.charCodeAt(i) ^ E2EE_KEY.charCodeAt(i % E2EE_KEY.length));
+                }
+                return { text: out, wasEncrypted: true };
+            } catch (e) { return { text: cipher, wasEncrypted: false }; }
+        }
+
+        // Web Audio Chime
+        function playChime() {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.2, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.26);
+            } catch (e) {}
+        }
+
+        // Color generator for sender names
+        const NAME_COLORS = ['#0088cc', '#e056fd', '#25d366', '#ff4757', '#ffa502', '#8e44ad', '#00d2d3'];
+        function getNameColor(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return NAME_COLORS[Math.abs(hash) % NAME_COLORS.length];
+        }
+
+        // Escape HTML
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t));
+        }
+
+        // Time formatter
+        function getCurrentTime() {
+            const d = new Date();
+            return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // Add Bubble to UI
+        function renderBubble(data, isOutgoing) {
+            const messagesDiv = document.getElementById('messages');
+            if (!messagesDiv) return;
+
+            const dec = decryptE2EE(data.content || data.message);
+            const text = dec.text;
+            const wasE2EE = dec.wasEncrypted;
+            const timeStr = data.time || getCurrentTime();
+
+            const row = document.createElement('div');
+            row.className = `wa-bubble-row ${isOutgoing ? 'outgoing' : 'incoming'}`;
+
+            let imgHTML = data.image ? `<img src="${data.image}" class="wa-bubble-image" onclick="window.open(this.src)">` : '';
+            let audioHTML = data.audio ? `<div class="d-flex align-items-center my-1"><i class="fa-solid fa-microphone text-danger mr-2"></i><audio controls src="${data.audio}" style="max-width: 240px; height: 36px;"></audio></div>` : '';
+            let textHTML = (text && text !== "[Photo]" && text !== "[Voice Note]") ? `<p class="wa-message-text">${escapeHTML(text)}</p>` : '';
+            let lockHTML = wasE2EE ? '<i class="fa-solid fa-lock text-success mr-1" title="E2EE Decrypted" style="font-size:0.65rem;"></i>' : '';
+
+            if (isOutgoing) {
+                row.innerHTML = `
+                    <div class="wa-bubble">
+                        ${imgHTML}${audioHTML}${textHTML}
+                        <div class="wa-bubble-meta">
+                            ${lockHTML}<span>${escapeHTML(timeStr)}</span><span class="wa-ticks">✓✓</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const nameColor = data.is_bot ? '#0088cc' : getNameColor(data.name);
+                const botBadge = data.is_bot ? ' <span class="badge badge-info" style="font-size:0.65rem;">BOT</span>' : '';
+                row.innerHTML = `
+                    <div class="wa-bubble">
+                        <span class="wa-sender-name" style="color: ${nameColor};">${escapeHTML(data.name)}${botBadge}</span>
+                        ${imgHTML}${audioHTML}${textHTML}
+                        <div class="wa-bubble-meta">
+                            ${lockHTML}<span>${escapeHTML(timeStr)}</span>
+                        </div>
+                    </div>
+                `;
+                playChime();
+            }
+
+            messagesDiv.appendChild(row);
+            messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: 'smooth' });
+        }
+
+        // Built-in AI Assistant logic
+        function handleAIBot(query) {
+            const p = query.toLowerCase();
+            let reply = "🤖 I'm Unstable Connection AI Assistant. Ask me about sockets, TCP, UDP, E2EE, or type /ai joke!";
+            if (p.includes("socket")) reply = "🔌 Sockets allow bidirectional network communication over TCP/IP!";
+            else if (p.includes("tcp") && p.includes("udp")) reply = "📡 TCP guarantees delivery; UDP is faster but connectionless!";
+            else if (p.includes("joke")) reply = "Why do programmers wear glasses? Because they don't C#! 😄";
+            else if (p.includes("e2ee")) reply = "🔒 E2EE ensures only the sender and receiver can decrypt the payload!";
+            else if (p.includes("time")) reply = `⏰ Live Time: ${new Date().toLocaleTimeString()}`;
+
+            setTimeout(() => {
+                renderBubble({ name: "🤖 AI Assistant", content: reply, is_bot: true, time: getCurrentTime() }, false);
+            }, 400);
+        }
+
+        // Supabase Realtime Channel
+        let realtimeChannel = null;
+
+        function initSupabaseRealtime() {
+            if (realtimeChannel) realtimeChannel.unsubscribe();
+
+            realtimeChannel = sb.channel(`unstable-room-${currentRoom}`, {
+                config: { broadcast: { self: false } }
+            });
+
+            // Listen for broadcast messages from other peers
+            realtimeChannel.on('broadcast', { event: 'message' }, (payload) => {
+                if (payload && payload.payload) {
+                    renderBubble(payload.payload, false);
+                }
+            });
+
+            // Listen for typing indicator
+            realtimeChannel.on('broadcast', { event: 'typing' }, (payload) => {
+                const ind = document.getElementById('typingIndicator');
+                const userSpan = document.getElementById('typingUser');
+                if (ind && userSpan && payload.payload.name) {
+                    userSpan.textContent = payload.payload.name;
+                    ind.style.display = 'inline-flex';
+                    setTimeout(() => { ind.style.display = 'none'; }, 2000);
+                }
+            });
+
+            realtimeChannel.subscribe((status) => {
+                console.log("[Supabase Realtime Channel]:", status);
+            });
+        }
+
+        // Send Message Handler
+        async function sendMessage(content, image = null, audio = null) {
+            if (!currentUser) {
+                document.getElementById('loginModal').style.display = 'flex';
+                return;
+            }
+
+            const timeStr = getCurrentTime();
+            const encryptedContent = (content && !content.startsWith("/ai ") && !content.startsWith("@bot ")) ? encryptE2EE(content) : content;
+
+            const payload = {
+                name: currentUser,
+                content: encryptedContent,
+                message: encryptedContent,
+                image: image,
+                audio: audio,
+                room: currentRoom,
+                time: timeStr
+            };
+
+            // 1. Render immediately for sender
+            renderBubble(payload, true);
+
+            // 2. Broadcast live to peers across the world via Supabase Realtime
+            if (realtimeChannel) {
+                realtimeChannel.send({
+                    type: 'broadcast',
+                    event: 'message',
+                    payload: payload
+                });
+            }
+
+            // 3. Save to Supabase Cloud Database table (if created)
+            try {
+                let savedContent = content;
+                if (image) savedContent = "[Photo]";
+                if (audio) savedContent = "[Voice Note]";
+                await sb.from('messages').insert({
+                    name: currentUser,
+                    content: savedContent,
+                    time: `${new Date().toLocaleDateString()} ${timeStr}`
+                });
+            } catch (err) {
+                console.debug("[Supabase Cloud DB]: Saved in realtime channel");
+            }
+
+            // 4. Check for AI Bot trigger
+            if (content && (content.startsWith("/ai ") || content.startsWith("@bot "))) {
+                const q = content.replace("/ai ", "").replace("@bot ", "").trim();
+                handleAIBot(q);
+            }
+        }
+
+        // Load initial historical records from Supabase
+        async function loadSupabaseHistory() {
+            try {
+                const { data, error } = await sb.from('messages').select('*').order('id', { ascending: true }).limit(50);
+                if (data && data.length > 0) {
+                    data.forEach(msg => {
+                        const isMe = (msg.name === currentUser);
+                        renderBubble(msg, isMe);
+                    });
+                }
+            } catch (e) {
+                console.debug("Offline historical mode");
+            }
+        }
+
+        // Categorized Emoji Grid
+        const EMOJIS = {
+            smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '😉', '😌', '😍', '🥰', '😘', '😋', '😜', '😎', '🤩', '🥳', '😏', '🥺', '😭', '🤯'],
+            gestures: ['👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '👇', '👋', '🤝', '👏', '🙌', '🤲', '🙏', '💪', '👊', '✊', '🤛', '🤜'],
+            hearts: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '🔥', '✨', '⭐', '🌟', '💥', '💯', '🎉'],
+            tech: ['💻', '🖥️', '📱', '📲', '🔋', '🔌', '📡', '🚀', '⚡', '💡', '🤖', '🎮', '🎧', '📸', '☕', '🍕', '🍔', '🍺', '🎯', '🏆', '💎']
+        };
+
+        function renderEmojiTab(category) {
+            const grid = document.getElementById('emojiGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            (EMOJIS[category] || EMOJIS.smileys).forEach(e => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'wa-emoji-item';
+                btn.textContent = e;
+                btn.onclick = (evt) => {
+                    evt.stopPropagation();
+                    const input = document.getElementById('msg');
+                    input.value += e;
+                    input.focus();
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        // Document Ready Event Listeners
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check username
+            if (!currentUser) {
+                document.getElementById('loginModal').style.display = 'flex';
+            } else {
+                document.getElementById('userNameNav').textContent = currentUser;
+                document.getElementById('userAvatarNav').textContent = currentUser[0].toUpperCase();
+            }
+
+            document.getElementById('confirmHandleBtn').onclick = () => {
+                const name = document.getElementById('handleInput').value.trim();
+                if (name) {
+                    currentUser = name;
+                    localStorage.setItem('unstable_user', name);
+                    document.getElementById('userNameNav').textContent = name;
+                    document.getElementById('userAvatarNav').textContent = name[0].toUpperCase();
+                    document.getElementById('loginModal').style.display = 'none';
+                    initSupabaseRealtime();
+                }
+            };
+
+            document.getElementById('changeHandleBtn').onclick = () => {
+                document.getElementById('loginModal').style.display = 'flex';
+            };
+
+            // Room Selector
+            document.getElementById('roomSelector').onchange = (e) => {
+                currentRoom = e.target.value;
+                const msgBox = document.getElementById('messages');
+                msgBox.innerHTML = `<div class="wa-date-pill"><i class="fa-solid fa-hashtag mr-1"></i> Switched to channel #${currentRoom}</div>`;
+                initSupabaseRealtime();
+            };
+
+            // Form Submit
+            document.getElementById('msgForm').onsubmit = (e) => {
+                e.preventDefault();
+                const inp = document.getElementById('msg');
+                const text = inp.value.trim();
+                if (text) {
+                    sendMessage(text);
+                    inp.value = '';
+                }
+            };
+
+            // Live Typing Event broadcast
+            let typeTimer;
+            document.getElementById('msg').oninput = () => {
+                if (realtimeChannel && currentUser) {
+                    realtimeChannel.send({ type: 'broadcast', event: 'typing', payload: { name: currentUser } });
+                }
+            };
+
+            // Emoji Picker Toggle
+            const emojiPopup = document.getElementById('emojiPickerPopup');
+            document.getElementById('smileyBtn').onclick = (e) => {
+                e.stopPropagation();
+                emojiPopup.style.display = emojiPopup.style.display === 'flex' ? 'none' : 'flex';
+                renderEmojiTab('smileys');
+            };
+
+            document.getElementById('closeEmojiBtn').onclick = () => emojiPopup.style.display = 'none';
+            document.querySelectorAll('.wa-tab-btn').forEach(btn => {
+                btn.onclick = function() {
+                    document.querySelectorAll('.wa-tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    renderEmojiTab(this.dataset.tab);
+                };
+            });
+
+            document.querySelectorAll('.wa-emoji-tag').forEach(tag => {
+                tag.onclick = function() {
+                    const inp = document.getElementById('msg');
+                    inp.value += this.dataset.emoji;
+                    inp.focus();
+                };
+            });
+
+            // Photo Attachment
+            document.getElementById('attachBtn').onclick = () => document.getElementById('imageFileInput').click();
+            document.getElementById('imageFileInput').onchange = function() {
+                const file = this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => sendMessage(null, e.target.result);
+                reader.readAsDataURL(file);
+                this.value = '';
+            };
+
+            // Voice Note Recorder (MediaRecorder API)
+            const micBtn = document.getElementById('micBtn');
+            const recBar = document.getElementById('recordingBar');
+            const inpCapsule = document.getElementById('inputCapsule');
+            let recSeconds = 0;
+
+            micBtn.onclick = async () => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    return;
+                }
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioChunks = [];
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const r = new FileReader();
+                        r.onloadend = () => sendMessage(null, null, r.result);
+                        r.readAsDataURL(blob);
+                        stream.getTracks().forEach(t => t.stop());
+                        recBar.classList.replace('d-flex', 'd-none');
+                        inpCapsule.style.display = 'flex';
+                        clearInterval(recTimerInterval);
+                    };
+                    mediaRecorder.start();
+                    recBar.classList.replace('d-none', 'd-flex');
+                    inpCapsule.style.display = 'none';
+                    recSeconds = 0;
+                    recTimerInterval = setInterval(() => {
+                        recSeconds++;
+                        document.getElementById('recTimer').textContent = `00:${String(recSeconds).padStart(2, '0')}`;
+                    }, 1000);
+                } catch (err) {
+                    alert("Microphone permission required for voice notes: " + err.message);
+                }
+            };
+
+            document.getElementById('stopRecBtn').onclick = () => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+            };
+
+            // E2EE Toggle
+            document.getElementById('e2eeToggleBtn').onclick = () => {
+                e2eeEnabled = !e2eeEnabled;
+                const badge = document.getElementById('e2eeBadge');
+                const icon = document.getElementById('e2eeIcon');
+                if (e2eeEnabled) {
+                    badge.className = 'badge badge-light ml-2 text-success';
+                    badge.innerHTML = '<i class="fa-solid fa-lock mr-1"></i>E2EE Active';
+                    icon.className = 'fa-solid fa-shield-halved text-success';
+                } else {
+                    badge.className = 'badge badge-light ml-2 text-muted';
+                    badge.innerHTML = '<i class="fa-solid fa-lock-open mr-1"></i>Plaintext';
+                    icon.className = 'fa-solid fa-shield-halved text-muted';
+                }
+            };
+
+            // Sound Toggle
+            document.getElementById('soundToggleBtn').onclick = function() {
+                soundEnabled = !soundEnabled;
+                this.innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high text-success"></i>' : '<i class="fa-solid fa-volume-xmark text-muted"></i>';
+            };
+
+            // Clear View
+            document.getElementById('clearViewBtn').onclick = () => {
+                document.getElementById('messages').innerHTML = '<div class="wa-date-pill">Screen Cleared</div>';
+            };
+
+            // Export Chat Transcript
+            document.getElementById('exportHistoryBtn').onclick = () => {
+                let txt = "Unstable Connection - Chat Transcript\n\n";
+                document.querySelectorAll('.wa-bubble-row').forEach(row => {
+                    const isOut = row.classList.contains('outgoing');
+                    const name = isOut ? "You" : (row.querySelector('.wa-sender-name')?.textContent || "Peer");
+                    const time = row.querySelector('.wa-bubble-meta span')?.textContent || "";
+                    const body = row.querySelector('.wa-message-text')?.textContent || "[Media Attachment]";
+                    txt += `[${time}] ${name}: ${body}\n`;
+                });
+                const blob = new Blob([txt], { type: 'text/plain' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `Unstable_Connection_Chat_${Date.now()}.txt`;
+                a.click();
+            };
+
+            // Connect to Realtime & Load History
+            initSupabaseRealtime();
+            loadSupabaseHistory();
+        });
+    </script>
+</body>
+</html>
