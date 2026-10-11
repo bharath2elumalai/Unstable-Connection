@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Chat History{% endblock %}
+
+{% block content %}
+<div class="wa-chat-window">
+    <!-- Top Search & Actions Bar (WhatsApp / Telegram Search Format) -->
+    <div class="wa-history-search-bar">
+        <a href="/home" class="wa-icon-btn mr-1" title="Back to Chat">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+
+        <div class="wa-search-capsule">
+            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+            <input 
+                type="text" 
+                id="historySearchInput" 
+                placeholder="Search messages or contacts..." 
+                autocomplete="off"
+            />
+        </div>
+
+        <button type="button" class="wa-btn-export" id="exportHistoryBtn" title="Export Chat History as Text File" style="background: #ff4757;">
+            <i class="fa-solid fa-arrow-down"></i>
+            <span>Export Chat</span>
+        </button>
+    </div>
+
+    <!-- Status Strip -->
+    <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-light border-bottom" style="font-size: 0.85rem; color: #54656f;">
+        <div>
+            <i class="fa-solid fa-database text-danger mr-1"></i>
+            <span>Unstable Connection - SQLite Message Archive</span>
+        </div>
+        <div id="matchCounter" style="font-weight: 600;">
+            {{ history|length }} messages recorded
+        </div>
+    </div>
+
+    <!-- Chat Messages History List (WhatsApp & Telegram Bubble Format) -->
+    <div class="wa-chat-body" id="historyListContainer" style="flex: 1;">
+        {% if history and history|length > 0 %}
+            {% for msg in history %}
+                {% set is_me = (msg['name'] == session.get('name')) %}
+                <div class="wa-bubble-row {% if is_me %}outgoing{% else %}incoming{% endif %} history-item" 
+                     data-text="{{ msg['message']|lower }}" 
+                     data-name="{{ msg['name']|lower }}">
+                    <div class="wa-bubble">
+                        {% if not is_me %}
+                            <span class="wa-sender-name text-primary">
+                                {{ msg['name'] }}
+                            </span>
+                        {% endif %}
+                        <p class="wa-message-text">{{ msg['message'] }}</p>
+                        <div class="wa-bubble-meta">
+                            <span>{{ msg['time'] }}</span>
+                            {% if is_me %}
+                                <span class="wa-ticks">✓✓</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fa-regular fa-comment-dots mb-3" style="font-size: 2.5rem; opacity: 0.4;"></i>
+                <p>No chat history available yet in Unstable Connection database.</p>
+            </div>
+        {% endif %}
+
+        <div id="noMatchMessage" class="text-center py-5 text-muted" style="display: none;">
+            <i class="fa-solid fa-magnifying-glass mb-2" style="font-size: 1.8rem; opacity: 0.4;"></i>
+            <p>No messages match your search.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Live WhatsApp-style Search
+    const searchInput = document.getElementById('historySearchInput');
+    const items = document.querySelectorAll('.history-item');
+    const matchCounter = document.getElementById('matchCounter');
+    const noMatchMessage = document.getElementById('noMatchMessage');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim().toLowerCase();
+            let matches = 0;
+
+            items.forEach(item => {
+                const text = item.getAttribute('data-text') || '';
+                const name = item.getAttribute('data-name') || '';
+
+                if (text.includes(query) || name.includes(query)) {
+                    item.style.display = 'flex';
+                    matches++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (matchCounter) {
+                matchCounter.textContent = `${matches} messages found`;
+            }
+
+            if (noMatchMessage) {
+                noMatchMessage.style.display = (matches === 0 && items.length > 0) ? 'block' : 'none';
+            }
+        });
+    }
+
+    // Export WhatsApp-style Chat (.txt)
+    const exportBtn = document.getElementById('exportHistoryBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            let transcript = "Unstable Connection - Chat History Archive\n\n";
+            items.forEach(item => {
+                const nameEl = item.querySelector('.wa-sender-name');
+                const isOutgoing = item.classList.contains('outgoing');
+                const name = isOutgoing ? "You" : (nameEl ? nameEl.textContent.trim() : "Other");
+                const time = item.querySelector('.wa-bubble-meta span') ? item.querySelector('.wa-bubble-meta span').textContent.trim() : "";
+                const text = item.querySelector('.wa-message-text') ? item.querySelector('.wa-message-text').textContent.trim() : "";
+                transcript += `[${time}] ${name}: ${text}\n`;
+            });
+
+            const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Unstable_Connection_Chat_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
+</script>
+{% endblock %}
